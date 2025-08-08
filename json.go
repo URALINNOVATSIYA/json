@@ -45,11 +45,9 @@ func (j *Json) Decode() (v any, err error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if j.cursor >= j.jsonLen {
 		return v, nil
 	}
-
 	return nil, syntaxError(j.cursor)
 }
 
