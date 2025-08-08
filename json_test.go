@@ -46,15 +46,15 @@ func TestParseFromJson(t *testing.T) {
 		{"\r\n\t \"string\"\r\n\t ", customTypes{}, "string", ""},
 		{`"\u041f\u0440\u0438\u0432\u0435\u0442"`, customTypes{}, "Привет", ""},
 		{`"\u042d\u043c\u043e\u0434\u0437\u0438: \u2705, \ud83e\udd2a"`, customTypes{}, "Эмодзи: ✅, 🤪", ""},
-		{"-100", customTypes{}, -100, ""},
-		{"-10", customTypes{}, -10, ""},
-		{"-1", customTypes{}, -1, ""},
+		{"-100", customTypes{}, float64(-100), ""},
+		{"-10", customTypes{}, float64(-10), ""},
+		{"-1", customTypes{}, float64(-1), ""},
 		{"-0.123456789", customTypes{}, -0.123456789, ""},
 		{"0.123456789", customTypes{}, 0.123456789, ""},
-		{"1", customTypes{}, 1, ""},
-		{"10", customTypes{}, 10, ""},
-		{"100", customTypes{}, 100, ""},
-		{"\r\n\t 100\r\n\t", customTypes{}, 100, ""},
+		{"1", customTypes{}, float64(1), ""},
+		{"10", customTypes{}, float64(10), ""},
+		{"100", customTypes{}, float64(100), ""},
+		{"\r\n\t 100\r\n\t", customTypes{}, float64(100), ""},
 		{"\r\n\t -1234.3425525e+3\r\n\t ", customTypes{}, -1234342.5525, ""},
 		{"\r\n\t -1234.3425525E+3\r\n\t ", customTypes{}, -1234342.5525, ""},
 		{"null", customTypes{}, nil, ""},
@@ -76,11 +76,11 @@ func TestParseFromJson(t *testing.T) {
 		{"[true,]", customTypes{}, nil, syntaxError(6).Error()},
 		{"[1,]", customTypes{}, nil, syntaxError(3).Error()},
 		{"[true, false, null]", customTypes{}, []any{true, false, nil}, ""},
-		{"[1,2, 3, 4 , \r\n\t5 \r\n\t,6]", customTypes{}, []any{1, 2, 3, 4, 5, 6}, ""},
+		{"[1,2, 3, 4 , \r\n\t5 \r\n\t,6]", customTypes{}, []any{1., 2., 3., 4., 5., 6.}, ""},
 		{
 			"[-100, -10, -1, -0.1, -0.0123456789, 0, 0.0123456789, 0.1, 1, 10, 100]",
 			customTypes{},
-			[]any{-100, -10, -1, -0.1, -0.0123456789, 0, 0.0123456789, 0.1, 1, 10, 100},
+			[]any{-100., -10., -1., -0.1, -0.0123456789, 0., 0.0123456789, 0.1, 1., 10., 100.},
 			"",
 		},
 		{
@@ -93,13 +93,13 @@ func TestParseFromJson(t *testing.T) {
 		{
 			"[[1,2,3,4],[5,6,7,8]]",
 			customTypes{},
-			[]any{[]any{1, 2, 3, 4}, []any{5, 6, 7, 8}},
+			[]any{[]any{1., 2., 3., 4.}, []any{5., 6., 7., 8.}},
 			"",
 		},
 		{
 			`[-100, -10, -1, -0.1, -0.0123456789, 0, 0.0123456789, 0.1, 1, 10, 100, "", " ", " \r\n\t", "some text", "\"some name\"", "\u041f\u0440\u0438\u0432\u0435\u0442", "\u042d\u043c\u043e\u0434\u0437\u0438: \u2705, \ud83e\udd2a", [1,2,3], {}]`,
 			customTypes{},
-			[]any{-100, -10, -1, -0.1, -0.0123456789, 0, 0.0123456789, 0.1, 1, 10, 100, "", " ", " \r\n\t", "some text", "\"some name\"", "Привет", "Эмодзи: ✅, 🤪", []any{1, 2, 3}, map[string]any{}},
+			[]any{-100., -10., -1., -0.1, -0.0123456789, 0., 0.0123456789, 0.1, 1., 10., 100., "", " ", " \r\n\t", "some text", "\"some name\"", "Привет", "Эмодзи: ✅, 🤪", []any{1., 2., 3.}, map[string]any{}},
 			"",
 		},
 		{"[{},{}]", customTypes{}, []any{map[string]any{}, map[string]any{}}, ""},
@@ -115,7 +115,7 @@ func TestParseFromJson(t *testing.T) {
 		{
 			`{"a":"value", "b":1, "c":-1, "d":10, "e":-10, "f": 0.45, "g": -0.45, "h" : false, "i":true, "j":null, "k": "\u041f\u0440\u0438\u0432\u0435\u0442", "l": "\u042d\u043c\u043e\u0434\u0437\u0438: \u2705, \ud83e\udd2a", "m": [], "n": {}}`,
 			customTypes{},
-			map[string]any{"a": "value", "b": 1, "c": -1, "d": 10, "e": -10, "f": 0.45, "g": -0.45, "h": false, "i": true, "j": nil, "k": "Привет", "l": "Эмодзи: ✅, 🤪", "m": []any{}, "n": map[string]any{}},
+			map[string]any{"a": "value", "b": 1., "c": -1., "d": 10., "e": -10., "f": 0.45, "g": -0.45, "h": false, "i": true, "j": nil, "k": "Привет", "l": "Эмодзи: ✅, 🤪", "m": []any{}, "n": map[string]any{}},
 			"",
 		},
 		{
@@ -136,7 +136,7 @@ func TestParseFromJson(t *testing.T) {
 				listItemPusher: pushListItem,
 			},
 			&customSlice{
-				mySlice: []any{1, 2, 3, 4, 5},
+				mySlice: []any{1., 2., 3., 4., 5.},
 			},
 			"",
 		},
@@ -160,10 +160,10 @@ func TestParseFromJson(t *testing.T) {
 			&customSlice{
 				mySlice: []any{
 					&customSlice{
-						mySlice: []any{1, 2, 3, 4, 5},
+						mySlice: []any{1., 2., 3., 4., 5.},
 					},
 					&customSlice{
-						mySlice: []any{1, 2, 3},
+						mySlice: []any{1., 2., 3.},
 					},
 				},
 			},
@@ -178,10 +178,10 @@ func TestParseFromJson(t *testing.T) {
 			&customSlice{
 				mySlice: []any{
 					&customSlice{
-						mySlice: []any{1, 2},
+						mySlice: []any{1., 2.},
 					},
 					&customSlice{
-						mySlice: []any{1, 2, 3},
+						mySlice: []any{1., 2., 3.},
 					},
 					&customSlice{
 						mySlice: []any{map[string]any{"key1": "value1", "key2": "value2"}},
@@ -239,7 +239,7 @@ func TestParseFromJson(t *testing.T) {
 			&customMap{
 				myMap: map[string]any{
 					"key1": &customMap{
-						myMap: map[string]any{"key1.1": "value1.1", "key1.2": []any{1, 2, 3}},
+						myMap: map[string]any{"key1.1": "value1.1", "key1.2": []any{1., 2., 3.}},
 					},
 					"key2": &customMap{
 						myMap: map[string]any{"key2.1": "value2.1"},
@@ -285,10 +285,10 @@ func TestParseFromJson(t *testing.T) {
 			&customSlice{
 				mySlice: []any{
 					&customSlice{
-						mySlice: []any{1, 2},
+						mySlice: []any{1., 2.},
 					},
 					&customSlice{
-						mySlice: []any{1, 2, 3},
+						mySlice: []any{1., 2., 3.},
 					},
 					&customSlice{
 						mySlice: []any{
@@ -315,7 +315,7 @@ func TestParseFromJson(t *testing.T) {
 						myMap: map[string]any{
 							"key1.1": "value1.1",
 							"key1.2": &customSlice{
-								mySlice: []any{1, 2, 3},
+								mySlice: []any{1., 2., 3.},
 							},
 						},
 					},

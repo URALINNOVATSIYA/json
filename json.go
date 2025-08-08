@@ -1,7 +1,6 @@
 package json
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"unicode"
@@ -99,7 +98,6 @@ func (j *Json) skipWhitespaces() {
 			return
 		}
 	}
-	return
 }
 
 func (j *Json) parseList() (any, error) {
@@ -107,7 +105,7 @@ func (j *Json) parseList() (any, error) {
 	var v any
 	var err error
 	var key int
-	l := make([]any, 0, 0)
+	l := make([]any, 0)
 	var cl any
 
 	if j.listBuilder != nil {
@@ -239,29 +237,23 @@ func (j *Json) parseNumber() (any, error) {
 			}
 			asFloat = true
 			continue
-		default:
-			break
 		}
 		break
 	}
 
-	if j.jsonLen >= i+2 && (j.json[i] == 'e' || j.json[i] == 'E') && (j.json[i+1] == '+' || j.json[i+1] == '-') && j.json[i+2] > 47 && j.json[i+2] < 58 {
-		asFloat = true
+	if j.jsonLen >= i+2 && (j.json[i] == 'e' || j.json[i] == 'E') &&
+		(j.json[i+1] == '+' || j.json[i+1] == '-') &&
+		j.json[i+2] > 47 && j.json[i+2] < 58 {
 		for i = i + 2; i < j.jsonLen; i++ {
 			if j.json[i] > 47 && j.json[i] < 58 {
 				continue
 			}
-
 			break
 		}
 	}
 
 	var n any
-	if asFloat {
-		n, _ = strconv.ParseFloat(string(j.json[j.cursor:i]), 64)
-	} else {
-		n, _ = strconv.Atoi(string(j.json[j.cursor:i]))
-	}
+	n, _ = strconv.ParseFloat(string(j.json[j.cursor:i]), 64)
 	j.cursor = i
 	return n, nil
 }
@@ -393,5 +385,5 @@ func (j *Json) parseNull() (any, error) {
 }
 
 func syntaxError(cursor int) error {
-	return errors.New(fmt.Sprintf("syntax error at position %d", cursor))
+	return fmt.Errorf("syntax error at position %d", cursor)
 }
